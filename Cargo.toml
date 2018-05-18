@@ -1,0 +1,6 @@
+[package]
+name = "rusty-boy"
+version = "0.1.0"
+authors = ["Christopher Oldfield <humantree@icloud.com>"]
+
+[dependencies]
