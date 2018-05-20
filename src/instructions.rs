@@ -2,11 +2,14 @@ use self::Instruction::*;
 use registers::{Register, Register::*};
 
 pub enum Instruction {
+    Adc(Register),
     Add(Register),
     Inc(Register),
     Sub(Register),
+    AdcHL,
     AddHL,
     SubHL,
+    AdcImmediate,
     AddImmediate,
     SubImmediate,
     Nop,
@@ -32,6 +35,14 @@ impl Instruction {
             0x85 => Add(L),
             0x86 => AddHL,
             0x87 => Add(A),
+            0x88 => Adc(B),
+            0x89 => Adc(C),
+            0x8A => Adc(D),
+            0x8B => Adc(E),
+            0x8C => Adc(H),
+            0x8D => Adc(L),
+            0x8E => AdcHL,
+            0x8F => Adc(A),
             0x90 => Sub(B),
             0x91 => Sub(C),
             0x92 => Sub(D),
@@ -41,6 +52,7 @@ impl Instruction {
             0x96 => SubHL,
             0x97 => Sub(A),
             0xC6 => AddImmediate,
+            0xCE => AdcImmediate,
             0xD6 => SubImmediate,
             _ => Unknown,
         }

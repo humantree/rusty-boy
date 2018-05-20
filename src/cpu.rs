@@ -50,69 +50,82 @@ impl Cpu {
         byte
     }
 
+    // -------------------------------------------------------------------------
+
     fn process_instruction(&mut self, instruction: Instruction) {
         use instructions::Instruction::*;
         use registers::RegisterPair::*;
 
+        let lhs = self.registers.a;
+
         match instruction {
-            Add(ref register) => {
-                let lhs = self.registers.a;
+            Adc(ref register) => {
                 let rhs = self.registers[register];
-                self.registers.a = self.add(lhs, rhs);
+                self.registers.a = self.add(lhs, rhs, true);
             },
 
-            AddHL => {
-                let lhs = self.registers.a;
-                let rhs = self.byte_for_register_pair(&HL);
-                self.registers.a = self.add(lhs, rhs);
-            }
-
-            AddImmediate => {
-                let lhs = self.registers.a;
-                let rhs = self.get_next_byte();
-                self.registers.a = self.add(lhs, rhs);
+            Add(ref register) => {
+                let rhs = self.registers[register];
+                self.registers.a = self.add(lhs, rhs, false);
             },
 
             Inc(ref register) => {
                 let lhs = self.registers[register];
-                self.registers[register] = self.add_basic(lhs, 1) as u8;
+                self.registers[register] = self.add_core(lhs, 1, false) as u8;
             },
 
-            Nop => (),
-
             Sub(ref register) => {
-                let lhs = self.registers.a;
                 let rhs = self.registers[register];
                 self.registers.a = self.sub(lhs, rhs);
             },
 
+            AdcHL => {
+                let rhs = self.byte_for_register_pair(&HL);
+                self.registers.a = self.add(lhs, rhs, true);
+            },
+
+            AddHL => {
+                let rhs = self.byte_for_register_pair(&HL);
+                self.registers.a = self.add(lhs, rhs, false);
+            },
+
             SubHL => {
-                let lhs = self.registers.a;
                 let rhs = self.byte_for_register_pair(&HL);
                 self.registers.a = self.sub(lhs, rhs);
-            }
+            },
+
+            AdcImmediate => {
+                let rhs = self.get_next_byte();
+                self.registers.a = self.add(lhs, rhs, true);
+            },
+
+            AddImmediate => {
+                let rhs = self.get_next_byte();
+                self.registers.a = self.add(lhs, rhs, false);
+            },
 
             SubImmediate => {
-                let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs);
-            }
+            },
 
+            Nop => (),
             Unknown => (),
         }
     }
 
     // -------------------------------------------------------------------------
 
-    fn add(&mut self, lhs: u8, rhs: u8) -> u8 {
-        let result = self.add_basic(lhs, rhs);
+    fn add(&mut self, lhs: u8, rhs: u8, carry: bool) -> u8 {
+        let result = self.add_core(lhs, rhs, carry);
         self.flags.cy = result > 0xFF;
         result as u8
     }
 
-    fn add_basic(&mut self, lhs: u8, rhs: u8) -> u16 {
-        let result = (lhs as u16) + (rhs as u16);
-        self.flags.h = ((lhs & 0xF) + (rhs & 0xF)) & 0x10 == 0x10;
+    fn add_core(&mut self, lhs: u8, rhs: u8, carry: bool) -> u16 {
+        let cy: u8 = if carry && self.flags.cy { 1 } else { 0 };
+        let result = (lhs as u16) + (rhs as u16) + (cy as u16);
+        self.flags.h = ((lhs & 0xF) + (rhs & 0xF) + cy) & 0x10 == 0x10;
         self.flags.n = false;
         self.set_flag_z(result as u8);
         result
