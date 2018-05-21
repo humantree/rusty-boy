@@ -74,9 +74,14 @@ impl Cpu {
                 self.registers[register] = self.add_core(lhs, 1, false) as u8;
             },
 
+            Sbc(register) => {
+                let rhs = self.registers[register];
+                self.registers.a = self.sub(lhs, rhs, true);
+            },
+
             Sub(register) => {
                 let rhs = self.registers[register];
-                self.registers.a = self.sub(lhs, rhs);
+                self.registers.a = self.sub(lhs, rhs, false);
             },
 
             AdcHL => {
@@ -89,9 +94,14 @@ impl Cpu {
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
+            SbcHL => {
+                let rhs = self.byte_for_register_pair(HL);
+                self.registers.a = self.sub(lhs, rhs, true);
+            },
+
             SubHL => {
                 let rhs = self.byte_for_register_pair(HL);
-                self.registers.a = self.sub(lhs, rhs);
+                self.registers.a = self.sub(lhs, rhs, false);
             },
 
             AdcImmediate => {
@@ -104,9 +114,14 @@ impl Cpu {
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
+            SbcImmediate => {
+                let rhs = self.get_next_byte();
+                self.registers.a = self.sub(lhs, rhs, true);
+            },
+
             SubImmediate => {
                 let rhs = self.get_next_byte();
-                self.registers.a = self.sub(lhs, rhs);
+                self.registers.a = self.sub(lhs, rhs, false);
             },
 
             Nop => (),
@@ -131,10 +146,14 @@ impl Cpu {
         result
     }
 
-    fn sub(&mut self, lhs: u8, rhs: u8) -> u8 {
-        let result = lhs.wrapping_sub(rhs);
+    fn sub(&mut self, lhs: u8, rhs: u8, carry: bool) -> u8 {
+        let cy: u8 = if carry && self.flags.cy { 1 } else { 0 };
+        let result = lhs.wrapping_sub(rhs).wrapping_sub(cy);
         self.flags.cy = rhs > lhs;
-        self.flags.h = ((lhs & 0xF).wrapping_sub(rhs & 0xF)) & 0x10 == 0x10;
+        self.flags.h = ((lhs & 0xF)
+            .wrapping_sub(rhs & 0xF)
+            .wrapping_sub(cy))
+            & 0x10 == 0x10;
         self.flags.n = true;
         self.set_flag_z(result);
         result
