@@ -39,7 +39,7 @@ impl Cpu {
         println!("{:?}", self.flags);
     }
 
-    fn byte_for_register_pair(&self, register_pair: &RegisterPair) -> u8 {
+    fn byte_for_register_pair(&self, register_pair: RegisterPair) -> u8 {
         let address = self.registers.pair(register_pair);
         self.rom[address as usize]
     }
@@ -59,38 +59,38 @@ impl Cpu {
         let lhs = self.registers.a;
 
         match instruction {
-            Adc(ref register) => {
+            Adc(register) => {
                 let rhs = self.registers[register];
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
-            Add(ref register) => {
+            Add(register) => {
                 let rhs = self.registers[register];
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
-            Inc(ref register) => {
+            Inc(register) => {
                 let lhs = self.registers[register];
                 self.registers[register] = self.add_core(lhs, 1, false) as u8;
             },
 
-            Sub(ref register) => {
+            Sub(register) => {
                 let rhs = self.registers[register];
                 self.registers.a = self.sub(lhs, rhs);
             },
 
             AdcHL => {
-                let rhs = self.byte_for_register_pair(&HL);
+                let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
             AddHL => {
-                let rhs = self.byte_for_register_pair(&HL);
+                let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
             SubHL => {
-                let rhs = self.byte_for_register_pair(&HL);
+                let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.sub(lhs, rhs);
             },
 
