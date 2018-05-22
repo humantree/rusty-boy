@@ -153,7 +153,7 @@ impl Cpu {
     fn sub(&mut self, lhs: u8, rhs: u8, carry: bool) -> u8 {
         let cy: u8 = if carry && self.flags.cy { 1 } else { 0 };
         let result = lhs.wrapping_sub(rhs).wrapping_sub(cy);
-        self.flags.cy = rhs > lhs;
+        self.flags.cy = rhs as i8 > (lhs as i8) - (cy as i8);
         self.flags.h = ((lhs & 0xF)
             .wrapping_sub(rhs & 0xF)
             .wrapping_sub(cy))
