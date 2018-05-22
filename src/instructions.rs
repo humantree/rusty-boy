@@ -1,5 +1,5 @@
 use self::Instruction::*;
-use registers::{Register, Register::*};
+use registers::*;
 
 #[derive(Clone, Copy)]
 pub enum Instruction {
@@ -8,6 +8,7 @@ pub enum Instruction {
     Inc(Register),
     Sbc(Register),
     Sub(Register),
+    Ld(RegisterPair),
     AdcHL,
     AddHL,
     SbcHL,
@@ -22,11 +23,15 @@ pub enum Instruction {
 
 impl Instruction {
     pub fn from_byte(byte: u8) -> Instruction {
+        use registers::{Register::*, RegisterPair::*};
+
         match byte {
             0x00 => Nop,
             0x04 => Inc(B),
+            0x0A => Ld(BC),
             0x0C => Inc(C),
             0x14 => Inc(D),
+            0x1A => Ld(DE),
             0x1C => Inc(E),
             0x24 => Inc(H),
             0x2C => Inc(L),

@@ -84,6 +84,10 @@ impl Cpu {
                 self.registers.a = self.sub(lhs, rhs, false);
             },
 
+            Ld(register_pair) => {
+                self.registers.a = self.byte_for_register_pair(register_pair);
+            },
+
             AdcHL => {
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.add(lhs, rhs, true);

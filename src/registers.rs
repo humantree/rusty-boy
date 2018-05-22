@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 #[derive(Clone, Copy, Debug)]
 pub enum Register { A, B, C, D, E, H, L }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum RegisterPair { BC, DE, HL }
 
 #[derive(Debug)]
