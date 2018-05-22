@@ -1,6 +1,7 @@
 use self::Instruction::*;
 use registers::{Register, Register::*};
 
+#[derive(Clone, Copy)]
 pub enum Instruction {
     Adc(Register),
     Add(Register),

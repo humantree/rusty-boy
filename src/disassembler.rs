@@ -1,18 +1,18 @@
 use instructions::{Instruction, Instruction::*};
 use std::fmt::{Display, Formatter, Result};
 
-pub fn log_instruction(instruction: &Instruction,
-                       program_counter: &u16,
+pub fn log_instruction(instruction: Instruction,
+                       program_counter: u16,
                        rom: &Vec<u8>) {
 
-    if let &Nop     = instruction { return }
-    if let &Unknown = instruction { return }
+    if let Nop     = instruction { return }
+    if let Unknown = instruction { return }
 
-    let address = format!("{:#06x}", *program_counter - 1);
+    let address = format!("{:#06X}", program_counter - 1);
     print!("{}\t{}", address, instruction);
 
     if instruction.is_immediate_instruction() {
-        let immediate_byte = rom[*program_counter as usize];
+        let immediate_byte = rom[program_counter as usize];
         print!("\t${}", immediate_byte);
     }
 
@@ -20,8 +20,8 @@ pub fn log_instruction(instruction: &Instruction,
 }
 
 impl Instruction {
-    pub fn is_immediate_instruction(&self) -> bool {
-        match *self {
+    pub fn is_immediate_instruction(self) -> bool {
+        match self {
             AdcImmediate => true,
             AddImmediate => true,
             SbcImmediate => true,

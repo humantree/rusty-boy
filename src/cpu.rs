@@ -29,7 +29,7 @@ impl Cpu {
             let byte = self.get_next_byte();
             let instruction = Instruction::from_byte(byte);
 
-            log_instruction(&instruction, &self.program_counter, &self.rom);
+            log_instruction(instruction, self.program_counter, &self.rom);
             self.process_instruction(instruction);
 
             if self.program_counter == 0x00 { break }
