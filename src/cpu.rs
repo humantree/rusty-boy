@@ -50,6 +50,12 @@ impl Cpu {
         byte
     }
 
+    fn get_next_two_bytes(&mut self) -> u16 {
+        let first_byte = self.get_next_byte();
+        let second_byte = self.get_next_byte();
+        ((first_byte as u16) << 8) + second_byte as u16
+    }
+
     fn set_byte_at_hl(&mut self, byte: u8) {
         let address = self.registers.pair(HL);
         self.memory[address as usize] = byte;
@@ -114,7 +120,7 @@ impl Cpu {
             LdToInternalRAM => {
                 let address = internal_ram_address(self.registers.c);
                 self.memory[address as usize] = self.registers.a;
-            }
+            },
 
             SbcHL => {
                 let lhs = self.registers.a;
@@ -135,7 +141,7 @@ impl Cpu {
             LdToHL(register) => {
                 let byte = self.registers[register];
                 self.set_byte_at_hl(byte);
-            }
+            },
 
             AdcImmediate => {
                 let lhs = self.registers.a;
@@ -152,17 +158,17 @@ impl Cpu {
             LdFromInternalRAMImmediate => {
                 let address = internal_ram_address(self.get_next_byte());
                 self.registers.a = self.memory[address as usize];
-            }
+            },
 
             LdHLImmediate => {
                 let byte = self.get_next_byte();
                 self.set_byte_at_hl(byte);
-            }
+            },
 
             LdToInternalRAMImmediate => {
                 let address = internal_ram_address(self.get_next_byte());
                 self.memory[address as usize] = self.registers.a;
-            }
+            },
 
             SbcImmediate => {
                 let lhs = self.registers.a;
@@ -178,7 +184,17 @@ impl Cpu {
 
             LdImmediate(register) => {
                 self.registers[register] = self.get_next_byte();
-            }
+            },
+
+            LdFromRAMImmediate16 => {
+                let address = self.get_next_two_bytes();
+                self.registers.a = self.memory[address as usize];
+            },
+
+            LdToRAMImmediate16 => {
+                let address = self.get_next_two_bytes();
+                self.memory[address as usize] = self.registers.a;
+            },
 
             Nop => (),
             Unknown => (),

@@ -25,6 +25,8 @@ pub enum Instruction {
     SbcImmediate,
     SubImmediate,
     LdImmediate(Register),
+    LdFromRAMImmediate16,
+    LdToRAMImmediate16,
     Nop,
     Unknown,
 }
@@ -104,8 +106,10 @@ impl Instruction {
             0xDE => SbcImmediate,
             0xE0 => LdToInternalRAMImmediate,
             0xE2 => LdToInternalRAM,
+            0xEA => LdToRAMImmediate16,
             0xF0 => LdFromInternalRAMImmediate,
             0xF2 => LdFromInternalRAM,
+            0xFA => LdFromRAMImmediate16,
             _ => Unknown,
         }
     }

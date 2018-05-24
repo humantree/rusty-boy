@@ -13,7 +13,14 @@ pub fn log_instruction(instruction: Instruction,
 
     if instruction.is_immediate_instruction() {
         let immediate_byte = memory[program_counter as usize];
-        print!("\t${}", immediate_byte);
+        print!("\t{:#04X}", immediate_byte);
+    }
+
+    if instruction.is_a16_instruction() {
+        let first_byte = memory[program_counter as usize];
+        let second_byte = memory[program_counter as usize + 1];
+        let joined = ((first_byte as u16) << 8) + second_byte as u16;
+        print!("\t({:#06X})", joined);
     }
 
     println!();
@@ -30,6 +37,14 @@ impl Instruction {
             LdToInternalRAMImmediate   => true,
             SbcImmediate               => true,
             SubImmediate               => true,
+            _ => false
+        }
+    }
+
+    pub fn is_a16_instruction(self) -> bool {
+        match self {
+            LdFromRAMImmediate16 => true,
+            LdToRAMImmediate16   => true,
             _ => false
         }
     }
@@ -60,6 +75,8 @@ impl Display for Instruction {
             SbcImmediate               => write!(f, "SBC A,d8"),
             SubImmediate               => write!(f, "SUB A,d8"),
             LdImmediate(register)      => write!(f, "LD {:?},d8",   register),
+            LdFromRAMImmediate16       => write!(f, "LD A,(a16)"),
+            LdToRAMImmediate16         => write!(f, "LD (a16),A"),
             Nop                        => write!(f, "NOP"),
             Unknown                    => write!(f, "NOT IMPLEMENTED"),
         }
