@@ -60,15 +60,15 @@ impl Cpu {
     fn process_instruction(&mut self, instruction: Instruction) {
         use instructions::Instruction::*;
 
-        let lhs = self.registers.a;
-
         match instruction {
             Adc(register) => {
+                let lhs = self.registers.a;
                 let rhs = self.registers[register];
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
             Add(register) => {
+                let lhs = self.registers.a;
                 let rhs = self.registers[register];
                 self.registers.a = self.add(lhs, rhs, false);
             },
@@ -79,11 +79,13 @@ impl Cpu {
             },
 
             Sbc(register) => {
+                let lhs = self.registers.a;
                 let rhs = self.registers[register];
                 self.registers.a = self.sub(lhs, rhs, true);
             },
 
             Sub(register) => {
+                let lhs = self.registers.a;
                 let rhs = self.registers[register];
                 self.registers.a = self.sub(lhs, rhs, false);
             },
@@ -93,31 +95,35 @@ impl Cpu {
             },
 
             AdcHL => {
+                let lhs = self.registers.a;
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
             AddHL => {
+                let lhs = self.registers.a;
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
             LdFromInternalRAM => {
-                let address = 0xFF00 + self.registers.c as u16;
+                let address = internal_ram_address(self.registers.c);
                 self.registers.a = self.memory[address as usize];
             },
 
             LdToInternalRAM => {
-                let address = 0xFF00 + self.registers.c as u16;
+                let address = internal_ram_address(self.registers.c);
                 self.memory[address as usize] = self.registers.a;
             }
 
             SbcHL => {
+                let lhs = self.registers.a;
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.sub(lhs, rhs, true);
             },
 
             SubHL => {
+                let lhs = self.registers.a;
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.sub(lhs, rhs, false);
             },
@@ -132,26 +138,40 @@ impl Cpu {
             }
 
             AdcImmediate => {
+                let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
             AddImmediate => {
+                let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, false);
             },
+
+            LdFromInternalRAMImmediate => {
+                let address = internal_ram_address(self.get_next_byte());
+                self.registers.a = self.memory[address as usize];
+            }
 
             LdHLImmediate => {
                 let byte = self.get_next_byte();
                 self.set_byte_at_hl(byte);
             }
 
+            LdToInternalRAMImmediate => {
+                let address = internal_ram_address(self.get_next_byte());
+                self.memory[address as usize] = self.registers.a;
+            }
+
             SbcImmediate => {
+                let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs, true);
             },
 
             SubImmediate => {
+                let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs, false);
             },
@@ -200,4 +220,8 @@ impl Cpu {
     fn set_flag_z(&mut self, result: u8) {
         self.flags.z = result == 0;
     }
+}
+
+fn internal_ram_address(offset: u8) -> u16 {
+0xFF00 + offset as u16
 }
