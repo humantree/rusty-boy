@@ -108,6 +108,10 @@ impl Cpu {
                 self.registers.a = self.sub(lhs, rhs, false);
             },
 
+            LdHL(register) => {
+                self.registers[register] = self.byte_for_register_pair(HL);
+            },
+
             AdcImmediate => {
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, true);
@@ -127,6 +131,10 @@ impl Cpu {
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs, false);
             },
+
+            LdImmediate(register) => {
+                self.registers[register] = self.get_next_byte();
+            }
 
             Nop => (),
             Unknown => (),
