@@ -14,12 +14,12 @@ fn main() {
     let mut file = File::open(path)
         .expect("Unable to open file.");
 
-    let mut rom = Vec::new();
-    file.read_to_end(&mut rom)
+    let mut memory = Vec::new();
+    file.read_to_end(&mut memory)
         .expect("Unable to read file.");
 
     let mut cpu = Cpu::new();
-    cpu.load_rom(rom);
+    cpu.load_memory(memory);
     cpu.run();
 }
 

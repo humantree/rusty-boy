@@ -5,31 +5,31 @@ use registers::*;
 
 pub struct Cpu {
     flags: Flags,
+    memory: Vec<u8>,
     program_counter: u16,
     registers: Registers,
-    rom: Vec<u8>,
 }
 
 impl Cpu {
     pub fn new() -> Cpu {
         Cpu {
             flags: Flags::new(),
+            memory: Vec::<u8>::new(),
             program_counter: 0,
             registers: Registers::new(),
-            rom: Vec::<u8>::new(),
         }
     }
 
-    pub fn load_rom(&mut self, rom: Vec<u8>) {
-        self.rom = rom;
+    pub fn load_memory(&mut self, memory: Vec<u8>) {
+        self.memory = memory;
     }
 
     pub fn run(&mut self) {
-        while (self.program_counter as usize) < self.rom.len() {
+        while (self.program_counter as usize) < self.memory.len() {
             let byte = self.get_next_byte();
             let instruction = Instruction::from_byte(byte);
 
-            log_instruction(instruction, self.program_counter, &self.rom);
+            log_instruction(instruction, self.program_counter, &self.memory);
             self.process_instruction(instruction);
 
             if self.program_counter == 0x00 { break }
@@ -41,13 +41,17 @@ impl Cpu {
 
     fn byte_for_register_pair(&self, register_pair: RegisterPair) -> u8 {
         let address = self.registers.pair(register_pair);
-        self.rom[address as usize]
+        self.memory[address as usize]
     }
 
     fn get_next_byte(&mut self) -> u8 {
-        let byte = self.rom[self.program_counter as usize];
+        let byte = self.memory[self.program_counter as usize];
         self.program_counter = self.program_counter.wrapping_add(1);
         byte
+    }
+
+    fn set_byte_at_address(&mut self, address: u16, value: u8) {
+        self.memory[address as usize] = value;
     }
 
     // -------------------------------------------------------------------------
@@ -108,9 +112,15 @@ impl Cpu {
                 self.registers.a = self.sub(lhs, rhs, false);
             },
 
-            LdHL(register) => {
+            LdFromHL(register) => {
                 self.registers[register] = self.byte_for_register_pair(HL);
             },
+
+            LdToHL(register) => {
+                let address = self.registers.pair(HL);
+                let value = self.registers[register];
+                self.set_byte_at_address(address, value);
+            }
 
             AdcImmediate => {
                 let rhs = self.get_next_byte();

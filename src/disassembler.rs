@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 
 pub fn log_instruction(instruction: Instruction,
                        program_counter: u16,
-                       rom: &Vec<u8>) {
+                       memory: &Vec<u8>) {
 
     if let Nop     = instruction { return }
     if let Unknown = instruction { return }
@@ -12,7 +12,7 @@ pub fn log_instruction(instruction: Instruction,
     print!("{}\t{}", address, instruction);
 
     if instruction.is_immediate_instruction() {
-        let immediate_byte = rom[program_counter as usize];
+        let immediate_byte = memory[program_counter as usize];
         print!("\t${}", immediate_byte);
     }
 
@@ -45,7 +45,8 @@ impl Display for Instruction {
             AddHL                 => write!(f, "ADD A,(HL)"),
             SbcHL                 => write!(f, "SBC A,(HL)"),
             SubHL                 => write!(f, "SUB (HL)"),
-            LdHL(register)        => write!(f, "LD {:?},(HL)", register),
+            LdFromHL(register)    => write!(f, "LD {:?},(HL)", register),
+            LdToHL(register)      => write!(f, "LD (HL),{:?}", register),
             AdcImmediate          => write!(f, "ADC A,d8"),
             AddImmediate          => write!(f, "ADD A,d8"),
             SbcImmediate          => write!(f, "SBC A,d8"),
