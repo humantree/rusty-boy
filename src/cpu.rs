@@ -1,7 +1,7 @@
 use disassembler::log_instruction;
 use flags::Flags;
 use instructions::Instruction;
-use registers::*;
+use registers::{*, RegisterPair::*};
 
 pub struct Cpu {
     flags: Flags,
@@ -50,15 +50,15 @@ impl Cpu {
         byte
     }
 
-    fn set_byte_at_address(&mut self, address: u16, value: u8) {
-        self.memory[address as usize] = value;
+    fn set_byte_at_hl(&mut self, byte: u8) {
+        let address = self.registers.pair(HL);
+        self.memory[address as usize] = byte;
     }
 
     // -------------------------------------------------------------------------
 
     fn process_instruction(&mut self, instruction: Instruction) {
         use instructions::Instruction::*;
-        use registers::RegisterPair::*;
 
         let lhs = self.registers.a;
 
@@ -117,9 +117,8 @@ impl Cpu {
             },
 
             LdToHL(register) => {
-                let address = self.registers.pair(HL);
-                let value = self.registers[register];
-                self.set_byte_at_address(address, value);
+                let byte = self.registers[register];
+                self.set_byte_at_hl(byte);
             }
 
             AdcImmediate => {
@@ -131,6 +130,11 @@ impl Cpu {
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, false);
             },
+
+            LdHLImmediate => {
+                let byte = self.get_next_byte();
+                self.set_byte_at_hl(byte);
+            }
 
             SbcImmediate => {
                 let rhs = self.get_next_byte();

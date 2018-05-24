@@ -24,6 +24,7 @@ impl Instruction {
         match self {
             AdcImmediate   => true,
             AddImmediate   => true,
+            LdHLImmediate  => true,
             LdImmediate(_) => true,
             SbcImmediate   => true,
             SubImmediate   => true,
@@ -43,6 +44,7 @@ impl Display for Instruction {
             Ld(register_pair)     => write!(f, "LD A,({:?})",  register_pair),
             AdcHL                 => write!(f, "ADC A,(HL)"),
             AddHL                 => write!(f, "ADD A,(HL)"),
+            LdHLImmediate         => write!(f, "LD (HL),d8"),
             SbcHL                 => write!(f, "SBC A,(HL)"),
             SubHL                 => write!(f, "SUB (HL)"),
             LdFromHL(register)    => write!(f, "LD {:?},(HL)", register),
