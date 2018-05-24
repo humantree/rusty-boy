@@ -102,6 +102,16 @@ impl Cpu {
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
+            LdFromInternalRAM => {
+                let address = 0xFF00 + self.registers.c as u16;
+                self.registers.a = self.memory[address as usize];
+            },
+
+            LdToInternalRAM => {
+                let address = 0xFF00 + self.registers.c as u16;
+                self.memory[address as usize] = self.registers.a;
+            }
+
             SbcHL => {
                 let rhs = self.byte_for_register_pair(HL);
                 self.registers.a = self.sub(lhs, rhs, true);

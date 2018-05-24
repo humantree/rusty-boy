@@ -11,6 +11,8 @@ pub enum Instruction {
     Ld(RegisterPair),
     AdcHL,
     AddHL,
+    LdFromInternalRAM,
+    LdToInternalRAM,
     SbcHL,
     SubHL,
     LdFromHL(Register),
@@ -98,6 +100,8 @@ impl Instruction {
             0xCE => AdcImmediate,
             0xD6 => SubImmediate,
             0xDE => SbcImmediate,
+            0xE2 => LdToInternalRAM,
+            0xF2 => LdFromInternalRAM,
             _ => Unknown,
         }
     }
