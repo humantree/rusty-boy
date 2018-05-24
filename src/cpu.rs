@@ -56,11 +56,6 @@ impl Cpu {
         ((first_byte as u16) << 8) + second_byte as u16
     }
 
-    fn set_byte_at_hl(&mut self, byte: u8) {
-        let address = self.registers.pair(HL);
-        self.memory[address as usize] = byte;
-    }
-
     // -------------------------------------------------------------------------
 
     fn process_instruction(&mut self, instruction: Instruction) {
@@ -139,8 +134,8 @@ impl Cpu {
             },
 
             LdToHL(register) => {
-                let byte = self.registers[register];
-                self.set_byte_at_hl(byte);
+                let address = self.registers.pair(HL);
+                self.memory[address as usize] = self.registers[register];
             },
 
             AdcImmediate => {
@@ -161,8 +156,8 @@ impl Cpu {
             },
 
             LdHLImmediate => {
-                let byte = self.get_next_byte();
-                self.set_byte_at_hl(byte);
+                let address = self.registers.pair(HL);
+                self.memory[address as usize] = self.get_next_byte();
             },
 
             LdToInternalRAMImmediate => {
@@ -239,5 +234,5 @@ impl Cpu {
 }
 
 fn internal_ram_address(offset: u8) -> u16 {
-0xFF00 + offset as u16
+    0xFF00 + offset as u16
 }
