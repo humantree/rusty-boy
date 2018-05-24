@@ -39,8 +39,8 @@ impl Cpu {
         println!("{:?}", self.flags);
     }
 
-    fn byte_for_register_pair(&self, register_pair: RegisterPair) -> u8 {
-        let address = self.registers.pair(register_pair);
+    fn byte_for_register_pair(&self, rp: RegisterPair) -> u8 {
+        let address = self.registers.pair(rp);
         self.memory[address as usize]
     }
 
@@ -62,136 +62,138 @@ impl Cpu {
         use instructions::Instruction::*;
 
         match instruction {
-            Adc(register) => {
-                let lhs = self.registers.a;
-                let rhs = self.registers[register];
-                self.registers.a = self.add(lhs, rhs, true);
-            },
-
-            Add(register) => {
-                let lhs = self.registers.a;
-                let rhs = self.registers[register];
-                self.registers.a = self.add(lhs, rhs, false);
-            },
-
-            Inc(register) => {
-                let lhs = self.registers[register];
-                self.registers[register] = self.add_core(lhs, 1, false) as u8;
-            },
-
-            Sbc(register) => {
-                let lhs = self.registers.a;
-                let rhs = self.registers[register];
-                self.registers.a = self.sub(lhs, rhs, true);
-            },
-
-            Sub(register) => {
-                let lhs = self.registers.a;
-                let rhs = self.registers[register];
-                self.registers.a = self.sub(lhs, rhs, false);
-            },
-
-            Ld(register_pair) => {
-                self.registers.a = self.byte_for_register_pair(register_pair);
-            },
-
-            AdcHL => {
-                let lhs = self.registers.a;
-                let rhs = self.byte_for_register_pair(HL);
-                self.registers.a = self.add(lhs, rhs, true);
-            },
-
-            AddHL => {
-                let lhs = self.registers.a;
-                let rhs = self.byte_for_register_pair(HL);
-                self.registers.a = self.add(lhs, rhs, false);
-            },
-
-            LdFromInternalRAM => {
-                let address = internal_ram_address(self.registers.c);
-                self.registers.a = self.memory[address as usize];
-            },
-
-            LdToInternalRAM => {
-                let address = internal_ram_address(self.registers.c);
-                self.memory[address as usize] = self.registers.a;
-            },
-
-            SbcHL => {
-                let lhs = self.registers.a;
-                let rhs = self.byte_for_register_pair(HL);
-                self.registers.a = self.sub(lhs, rhs, true);
-            },
-
-            SubHL => {
-                let lhs = self.registers.a;
-                let rhs = self.byte_for_register_pair(HL);
-                self.registers.a = self.sub(lhs, rhs, false);
-            },
-
-            LdFromHL(register) => {
-                self.registers[register] = self.byte_for_register_pair(HL);
-            },
-
-            LdToHL(register) => {
-                let address = self.registers.pair(HL);
-                self.memory[address as usize] = self.registers[register];
-            },
-
-            AdcImmediate => {
+            ADC_A_d8 => {
                 let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, true);
             },
 
-            AddImmediate => {
+            ADC_A_HL => {
+                let lhs = self.registers.a;
+                let rhs = self.byte_for_register_pair(HL);
+                self.registers.a = self.add(lhs, rhs, true);
+            },
+
+            ADC_A_r(r) => {
+                let lhs = self.registers.a;
+                let rhs = self.registers[r];
+                self.registers.a = self.add(lhs, rhs, true);
+            },
+
+            ADD_A_d8 => {
                 let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.add(lhs, rhs, false);
             },
 
-            LdFromInternalRAMImmediate => {
+            ADD_A_HL => {
+                let lhs = self.registers.a;
+                let rhs = self.byte_for_register_pair(HL);
+                self.registers.a = self.add(lhs, rhs, false);
+            },
+
+            ADD_A_r(r) => {
+                let lhs = self.registers.a;
+                let rhs = self.registers[r];
+                self.registers.a = self.add(lhs, rhs, false);
+            },
+
+            INC_r(r) => {
+                let lhs = self.registers[r];
+                self.registers[r] = self.add_core(lhs, 1, false) as u8;
+            },
+
+            LD_A_a8 => {
                 let address = internal_ram_address(self.get_next_byte());
                 self.registers.a = self.memory[address as usize];
             },
 
-            LdHLImmediate => {
+            LD_A_a16 => {
+                let address = self.get_next_two_bytes();
+                self.registers.a = self.memory[address as usize];
+            },
+
+            LD_A_C => {
+                let address = internal_ram_address(self.registers.c);
+                self.registers.a = self.memory[address as usize];
+            },
+
+            LD_A_rp(rp) => {
+                self.registers.a = self.byte_for_register_pair(rp);
+            },
+
+            LD_a8_A => {
+                let address = internal_ram_address(self.get_next_byte());
+                self.memory[address as usize] = self.registers.a;
+            },
+
+            LD_a16_A => {
+                let address = self.get_next_two_bytes();
+                self.memory[address as usize] = self.registers.a;
+            },
+
+            LD_C_A => {
+                let address = internal_ram_address(self.registers.c);
+                self.memory[address as usize] = self.registers.a;
+            },
+
+            LD_HL_d8 => {
                 let address = self.registers.pair(HL);
                 self.memory[address as usize] = self.get_next_byte();
             },
 
-            LdToInternalRAMImmediate => {
-                let address = internal_ram_address(self.get_next_byte());
-                self.memory[address as usize] = self.registers.a;
+            LD_HL_r(r) => {
+                let address = self.registers.pair(HL);
+                self.memory[address as usize] = self.registers[r];
             },
 
-            SbcImmediate => {
+            LD_r_d8(r) => {
+                self.registers[r] = self.get_next_byte();
+            },
+
+
+            LD_r_HL(r) => {
+                self.registers[r] = self.byte_for_register_pair(HL);
+            },
+
+            NOP => (),
+
+            SBC_A_d8 => {
                 let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs, true);
             },
 
-            SubImmediate => {
+            SBC_A_HL => {
+                let lhs = self.registers.a;
+                let rhs = self.byte_for_register_pair(HL);
+                self.registers.a = self.sub(lhs, rhs, true);
+            },
+
+            SBC_A_r(r) => {
+                let lhs = self.registers.a;
+                let rhs = self.registers[r];
+                self.registers.a = self.sub(lhs, rhs, true);
+            },
+
+            SUB_d8 => {
                 let lhs = self.registers.a;
                 let rhs = self.get_next_byte();
                 self.registers.a = self.sub(lhs, rhs, false);
             },
 
-            LdImmediate(register) => {
-                self.registers[register] = self.get_next_byte();
+            SUB_HL => {
+                let lhs = self.registers.a;
+                let rhs = self.byte_for_register_pair(HL);
+                self.registers.a = self.sub(lhs, rhs, false);
             },
 
-            LdFromRAMImmediate16 => {
-                let address = self.get_next_two_bytes();
-                self.registers.a = self.memory[address as usize];
+            SUB_r(r) => {
+                let lhs = self.registers.a;
+                let rhs = self.registers[r];
+                self.registers.a = self.sub(lhs, rhs, false);
             },
 
-            LdToRAMImmediate16 => {
-                let address = self.get_next_two_bytes();
-                self.memory[address as usize] = self.registers.a;
-            },
-
-            Nop => (),
             Unknown => (),
         }
     }
