@@ -1,3 +1,4 @@
+use self::RegisterPair::*;
 use std::ops::{Index, IndexMut};
 
 #[derive(Clone, Copy, Debug)]
@@ -30,13 +31,22 @@ impl Registers {
         }
     }
 
-    pub fn pair(&self, register_pair: RegisterPair) -> u16 {
-        use self::RegisterPair::*;
-
-        match register_pair {
+    pub fn pair(&self, rp: RegisterPair) -> u16 {
+        match rp {
             BC => ((self.b as u16) << 8) + (self.c as u16),
             DE => ((self.d as u16) << 8) + (self.e as u16),
             HL => ((self.h as u16) << 8) + (self.l as u16),
+        }
+    }
+
+    pub fn set_pair(&mut self, rp: RegisterPair, rhs: u16) {
+        let first_byte = (rhs >> 8) as u8;
+        let second_byte = (rhs & 0x00FF) as u8;
+
+        match rp {
+            BC => { self.b = first_byte; self.c = second_byte; },
+            DE => { self.d = first_byte; self.e = second_byte; },
+            HL => { self.h = first_byte; self.l = second_byte; },
         }
     }
 }
@@ -44,10 +54,10 @@ impl Registers {
 impl Index<Register> for Registers {
     type Output = u8;
 
-    fn index(&self, register: Register) -> &u8 {
+    fn index(&self, r: Register) -> &u8 {
         use self::Register::*;
 
-        match register {
+        match r {
             A => &self.a,
             B => &self.b,
             C => &self.c,
@@ -60,10 +70,10 @@ impl Index<Register> for Registers {
 }
 
 impl IndexMut<Register> for Registers {
-    fn index_mut(&mut self, register: Register) -> &mut u8 {
+    fn index_mut(&mut self, r: Register) -> &mut u8 {
         use self::Register::*;
 
-        match register {
+        match r {
             A => &mut self.a,
             B => &mut self.b,
             C => &mut self.c,

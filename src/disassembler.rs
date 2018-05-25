@@ -61,6 +61,8 @@ impl Display for Instruction {
             LD_A_a8     => write!(f, "LD A,(a8)"),
             LD_A_a16    => write!(f, "LD A,(a16)"),
             LD_A_C      => write!(f, "LD A,(C)"),
+            LD_A_HLD    => write!(f, "LD A,(HLD)"),
+            LD_A_HLI    => write!(f, "LD A,(HLI)"),
             LD_A_rp(rp) => write!(f, "LD A,({:?})",  rp),
             LD_a8_A     => write!(f, "LD (a8),A"),
             LD_a16_A    => write!(f, "LD (a16),A"),
