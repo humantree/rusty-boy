@@ -119,13 +119,13 @@ impl Cpu {
             },
 
             LD_A_HLD => {
-                let mut address = self.registers.pair(HL);
+                let address = self.registers.pair(HL);
                 self.registers.a = self.memory[address as usize];
                 self.registers.set_pair(HL, address.wrapping_sub(1));
             },
 
             LD_A_HLI => {
-                let mut address = self.registers.pair(HL);
+                let address = self.registers.pair(HL);
                 self.registers.a = self.memory[address as usize];
                 self.registers.set_pair(HL, address.wrapping_add(1));
             },
@@ -159,6 +159,18 @@ impl Cpu {
                 self.memory[address as usize] = self.registers[r];
             },
 
+            LD_HLD_A => {
+                let address = self.registers.pair(HL);
+                self.memory[address as usize] = self.registers.a;
+                self.registers.set_pair(HL, address.wrapping_sub(1));
+            },
+
+            LD_HLI_A => {
+                let address = self.registers.pair(HL);
+                self.memory[address as usize] = self.registers.a;
+                self.registers.set_pair(HL, address.wrapping_add(1));
+            },
+
             LD_r_d8(r) => {
                 self.registers[r] = self.get_next_byte();
             },
@@ -166,6 +178,11 @@ impl Cpu {
 
             LD_r_HL(r) => {
                 self.registers[r] = self.byte_for_register_pair(HL);
+            },
+
+            LD_rp_A(rp) => {
+                let address = self.registers.pair(rp);
+                self.memory[address as usize] = self.registers.a;
             },
 
             NOP => (),
