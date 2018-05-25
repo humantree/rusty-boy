@@ -8,6 +8,7 @@ pub struct Cpu {
     memory: Vec<u8>,
     program_counter: u16,
     registers: Registers,
+    stack_pointer: u16,
 }
 
 impl Cpu {
@@ -17,6 +18,7 @@ impl Cpu {
             memory: Vec::<u8>::new(),
             program_counter: 0,
             registers: Registers::new(),
+            stack_pointer: 0,
         }
     }
 
@@ -26,13 +28,15 @@ impl Cpu {
 
     pub fn run(&mut self) {
         while (self.program_counter as usize) < self.memory.len() {
+            let starting_program_counter = self.program_counter;
+
             let byte = self.get_next_byte();
             let instruction = Instruction::from_byte(byte);
 
-            log_instruction(instruction, self.program_counter, &self.memory);
+            log_instruction(instruction, &self.memory, self.program_counter);
             self.process_instruction(instruction);
 
-            if self.program_counter == 0x00 { break }
+            if self.program_counter < starting_program_counter { break }
         }
 
         println!("{:?}", self.registers);
@@ -53,7 +57,7 @@ impl Cpu {
     fn get_next_two_bytes(&mut self) -> u16 {
         let first_byte = self.get_next_byte();
         let second_byte = self.get_next_byte();
-        ((first_byte as u16) << 8) + second_byte as u16
+        ((second_byte as u16) << 8) + first_byte as u16
     }
 
     // -------------------------------------------------------------------------
@@ -185,6 +189,15 @@ impl Cpu {
                 self.memory[address as usize] = self.registers.a;
             },
 
+            LD_rp_d16(rp) => {
+                let rhs = self.get_next_two_bytes();
+                self.registers.set_pair(rp, rhs);
+            },
+
+            LD_SP_d16 => {
+                self.stack_pointer = self.get_next_two_bytes();
+            },
+
             NOP => (),
 
             SBC_A_d8 => {
@@ -247,7 +260,7 @@ impl Cpu {
     fn sub(&mut self, lhs: u8, rhs: u8, carry: bool) -> u8 {
         let cy: u8 = if carry && self.flags.cy { 1 } else { 0 };
         let result = lhs.wrapping_sub(rhs).wrapping_sub(cy);
-        self.flags.cy = rhs as i8 > (lhs as i8) - (cy as i8);
+        self.flags.cy = rhs as i16 > (lhs as i16) - (cy as i16);
         self.flags.h = ((lhs & 0xF)
             .wrapping_sub(rhs & 0xF)
             .wrapping_sub(cy))
