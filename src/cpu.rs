@@ -43,23 +43,6 @@ impl Cpu {
         println!("{:?}", self.flags);
     }
 
-    fn byte_for_register_pair(&self, rp: RegisterPair) -> u8 {
-        let address = self.registers.pair(rp);
-        self.memory[address as usize]
-    }
-
-    fn get_next_byte(&mut self) -> u8 {
-        let byte = self.memory[self.program_counter as usize];
-        self.program_counter = self.program_counter.wrapping_add(1);
-        byte
-    }
-
-    fn get_next_two_bytes(&mut self) -> u16 {
-        let first_byte = self.get_next_byte();
-        let second_byte = self.get_next_byte();
-        ((second_byte as u16) << 8) + first_byte as u16
-    }
-
     // -------------------------------------------------------------------------
 
     fn process_instruction(&mut self, instruction: Instruction) {
@@ -198,7 +181,16 @@ impl Cpu {
                 self.stack_pointer = self.get_next_two_bytes();
             },
 
+            LD_SP_HL => {
+                self.stack_pointer = self.registers.pair(HL);
+            },
+
             NOP => (),
+
+            PUSH_rp(rp) => {
+                let data = self.registers.pair(rp);
+                self.push(data);
+            },
 
             SBC_A_d8 => {
                 let lhs = self.registers.a;
@@ -238,6 +230,34 @@ impl Cpu {
 
             Unknown => (),
         }
+    }
+
+    // -------------------------------------------------------------------------
+
+    fn byte_for_register_pair(&self, rp: RegisterPair) -> u8 {
+        let address = self.registers.pair(rp);
+        self.memory[address as usize]
+    }
+
+    fn get_next_byte(&mut self) -> u8 {
+        let byte = self.memory[self.program_counter as usize];
+        self.program_counter = self.program_counter.wrapping_add(1);
+        byte
+    }
+
+    fn get_next_two_bytes(&mut self) -> u16 {
+        let first_byte = self.get_next_byte();
+        let second_byte = self.get_next_byte();
+        ((second_byte as u16) << 8) + first_byte as u16
+    }
+
+    fn push(&mut self, data: u16) {
+        let first_byte = (data >> 8) as u8;
+        let second_byte = (data & 0xFF) as u8;
+        self.stack_pointer = self.stack_pointer.wrapping_sub(1);
+        self.memory[self.stack_pointer as usize] = first_byte;
+        self.stack_pointer = self.stack_pointer.wrapping_sub(1);
+        self.memory[self.stack_pointer as usize] = second_byte;
     }
 
     // -------------------------------------------------------------------------
